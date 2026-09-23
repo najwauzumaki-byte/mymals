@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dunia Hewan Ghibli - Belajar & Bermain</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & React DOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel JS -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts for Cute Playful Ghibli Theme -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Fredoka', 'Quicksand', sans-serif;
+            background-color: #f0fdf4;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* Ghibli Style Background Gradients */
+        .bg-ghibli-land {
+            background: linear-gradient(180deg, #bae6fd 0%, #a7f3d0 60%, #86efac 100%);
+        }
+        .bg-ghibli-water {
+            background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 50%, #0284c7 100%);
+        }
+        .bg-ghibli-air {
+            background: linear-gradient(180deg, #fef08a 0%, #bae6fd 60%, #e0f2fe 100%);
+        }
+
+        /* Fun Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* Pulse Wiggle for Interactive Buttons */
+        @keyframes pulse-wiggle {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05) rotate(-3deg); }
+            75% { transform: scale(1.05) rotate(3deg); }
+        }
+        .hover-wiggle:hover {
+            animation: pulse-wiggle 0.5s ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #86efac;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const ANIMALS_DATA = [
+            // HEWAN DARAT
+            {
+                id: 'singa',
+                name: 'Singa',
+                habitat: 'darat',
+                emoji: '🦁',
+                soundText: 'Raooor! Aku adalah raja hutan yang pemberani!',
+                fact: 'Singa suka tidur dan bersantai bersama keluarganya di padang rumput!',
+                color: 'from-amber-300 to-orange-400',
+                borderColor: 'border-amber-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="45" fill="#f59e0b"/><circle cx="50" cy="50" r="32" fill="#fbbf24"/><circle cx="40" cy="45" r="4" fill="#1e293b"/><circle cx="60" cy="45" r="4" fill="#1e293b"/><polygon points="50,52 45,60 55,60" fill="#78350f"/><path d="M42 64 Q50 70 58 64" stroke="#78350f" stroke-width="3" fill="none"/></svg>`
+            },
+            {
+                id: 'gajah',
+                name: 'Gajah',
+                habitat: 'darat',
+                emoji: '🐘',
+                soundText: 'Trumpettt! Belalaiku panjang dan telingaku lebar!',
+                fact: 'Gajah menggunakan belalainya untuk minum air dan mengambil makanan!',
+                color: 'from-slate-300 to-slate-400',
+                borderColor: 'border-slate-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="52" r="35" fill="#94a3b8"/><circle cx="28" cy="45" r="15" fill="#cbd5e1"/><circle cx="72" cy="45" r="15" fill="#cbd5e1"/><circle cx="42" cy="48" r="4" fill="#0f172a"/><circle cx="58" cy="48" r="4" fill="#0f172a"/><path d="M50 55 Q50 78 62 70" stroke="#64748b" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`
+            },
+            {
+                id: 'kucing',
+                name: 'Kucing',
+                habitat: 'darat',
+                emoji: '🐱',
+                soundText: 'Meow meow! Aku suka dibelai dan bermain benang!',
+                fact: 'Kucing bisa melompat sangat tinggi dan suka tidur siang di tempat hangat!',
+                color: 'from-orange-200 to-amber-300',
+                borderColor: 'border-orange-300',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="55" r="32" fill="#fb923c"/><polygon points="25,35 35,15 45,32" fill="#fb923c"/><polygon points="55,32 65,15 75,35" fill="#fb923c"/><circle cx="40" cy="50" r="4" fill="#1e293b"/><circle cx="60" cy="50" r="4" fill="#1e293b"/><polygon points="50,57 47,61 53,61" fill="#7c2d12"/><path d="M43 65 Q50 70 57 65" stroke="#7c2d12" stroke-width="2" fill="none"/></svg>`
+            },
+            {
+                id: 'kelinci',
+                name: 'Kelinci',
+                habitat: 'darat',
+                emoji: '🐰',
+                soundText: 'Mump-mump! Aku melompat gembira memakan wortel!',
+                fact: 'Kelinci punya telinga yang sangat panjang untuk mendengarkan suara dari jauh!',
+                color: 'from-pink-100 to-rose-200',
+                borderColor: 'border-pink-300',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="60" rx="30" ry="25" fill="#f43f5e" opacity="0.1"/><ellipse cx="50" cy="62" rx="28" ry="24" fill="#ffffff"/><ellipse cx="40" cy="30" rx="8" ry="22" fill="#ffffff"/><ellipse cx="60" cy="30" rx="8" ry="22" fill="#ffffff"/><ellipse cx="40" cy="30" rx="4" ry="15" fill="#fbcfe8"/><ellipse cx="60" cy="30" rx="4" ry="15" fill="#fbcfe8"/><circle cx="42" cy="58" r="4" fill="#1e293b"/><circle cx="58" cy="58" r="4" fill="#1e293b"/><ellipse cx="50" cy="65" rx="3" ry="2" fill="#f43f5e"/></svg>`
+            },
+            {
+                id: 'sapi',
+                name: 'Sapi',
+                habitat: 'darat',
+                emoji: '🐮',
+                soundText: 'Mooo! Aku menghasilkan susu yang sehat dan segar!',
+                fact: 'Sapi makan rumput hijau di padang rumput yang indah dan luas!',
+                color: 'from-emerald-100 to-teal-200',
+                borderColor: 'border-emerald-300',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="52" r="32" fill="#f8fafc"/><circle cx="35" cy="40" r="8" fill="#334155"/><circle cx="62" cy="48" r="7" fill="#334155"/><ellipse cx="50" cy="64" rx="20" ry="12" fill="#fbcfe8"/><circle cx="42" cy="50" r="4" fill="#0f172a"/><circle cx="58" cy="50" r="4" fill="#0f172a"/><circle cx="44" cy="64" r="2" fill="#be185d"/><circle cx="56" cy="64" r="2" fill="#be185d"/></svg>`
+            },
+            {
+                id: 'panda',
+                name: 'Panda',
+                habitat: 'darat',
+                emoji: '🐼',
+                soundText: 'Nyam nyam! Bambu ini enak sekali!',
+                fact: 'Panda sangat suka memakan daun bambu segar sepanjang hari!',
+                color: 'from-gray-100 to-slate-200',
+                borderColor: 'border-slate-300',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="55" r="32" fill="#ffffff"/><circle cx="28" cy="32" r="12" fill="#1e293b"/><circle cx="72" cy="32" r="12" fill="#1e293b"/><ellipse cx="40" cy="52" rx="7" ry="9" fill="#1e293b"/><ellipse cx="60" cy="52" rx="7" ry="9" fill="#1e293b"/><circle cx="40" cy="50" r="3" fill="#ffffff"/><circle cx="60" cy="50" r="3" fill="#ffffff"/><ellipse cx="50" cy="62" rx="5" ry="3" fill="#1e293b"/></svg>`
+            },
+
+            // HEWAN AIR
+            {
+                id: 'lumba-lumba',
+                name: 'Lumba-Lumba',
+                habitat: 'air',
+                emoji: '🐬',
+                soundText: 'Cki-cki-cki! Aku suka melompat tinggi di atas gelombang laut!',
+                fact: 'Lumba-lumba adalah hewan laut yang sangat cerdas dan ramah pada manusia!',
+                color: 'from-sky-300 to-blue-400',
+                borderColor: 'border-sky-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><path d="M20 60 Q40 10 80 40 Q60 80 20 60 Z" fill="#38bdf8"/><path d="M70 35 Q85 30 90 40 Q80 50 70 42 Z" fill="#0284c7"/><circle cx="68" cy="35" r="3" fill="#0f172a"/><path d="M30 60 Q20 75 10 70 Q15 60 20 55 Z" fill="#38bdf8"/></svg>`
+            },
+            {
+                id: 'paus',
+                name: 'Ikan Paus',
+                habitat: 'air',
+                emoji: '🐋',
+                soundText: 'Swoooosh! Aku menyemburkan air yang indah ke udara!',
+                fact: 'Ikan paus adalah hewan terbesar di raksasa lautan biru!',
+                color: 'from-blue-400 to-indigo-500',
+                borderColor: 'border-blue-500',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="60" rx="40" ry="25" fill="#3b82f6"/><path d="M10 60 L0 45 L15 50 Z" fill="#1d4ed8"/><circle cx="75" cy="52" r="4" fill="#ffffff"/><ellipse cx="50" cy="40" rx="3" ry="12" fill="#93c5fd"/><ellipse cx="45" cy="32" rx="2" ry="8" fill="#93c5fd"/></svg>`
+            },
+            {
+                id: 'kura-kura',
+                name: 'Kura-Kura',
+                habitat: 'air',
+                emoji: '🐢',
+                soundText: 'Buluppp... Aku berenang santai membawa rumahku!',
+                fact: 'Tempurung kura-kura sangat kuat untuk melindunginya saat berenang!',
+                color: 'from-emerald-300 to-green-500',
+                borderColor: 'border-emerald-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="50" rx="32" ry="25" fill="#15803d"/><circle cx="78" cy="50" r="12" fill="#22c55e"/><circle cx="82" cy="47" r="2.5" fill="#0f172a"/><circle cx="35" cy="30" r="8" fill="#22c55e"/><circle cx="65" cy="30" r="8" fill="#22c55e"/><circle cx="35" cy="70" r="8" fill="#22c55e"/><circle cx="65" cy="70" r="8" fill="#22c55e"/></svg>`
+            },
+            {
+                id: 'gurita',
+                name: 'Gurita',
+                habitat: 'air',
+                emoji: '🐙',
+                soundText: 'Blub blub! Tentakelku ada delapan lho!',
+                fact: 'Gurita bisa mengeluarkan warna warni yang cantik di dalam laut!',
+                color: 'from-purple-300 to-pink-400',
+                borderColor: 'border-purple-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="40" r="28" fill="#c084fc"/><circle cx="40" cy="36" r="4" fill="#0f172a"/><circle cx="60" cy="36" r="4" fill="#0f172a"/><path d="M25 60 Q20 85 30 85 Q35 85 35 65 Q40 85 45 85 Q50 85 50 65 Q55 85 60 85 Q65 85 65 65 Q70 85 75 85 Q80 85 75 60 Z" fill="#a855f7"/></svg>`
+            },
+            {
+                id: 'ikan-badut',
+                name: 'Ikan Badut',
+                habitat: 'air',
+                emoji: '🐠',
+                soundText: 'Cip-cip! Badan oranye bercorak putih ini rumahku di terumbu karang!',
+                fact: 'Ikan Badut suka bersembunyi di antara anemon laut yang lembut!',
+                color: 'from-orange-300 to-amber-400',
+                borderColor: 'border-orange-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="50" rx="35" ry="22" fill="#f97316"/><path d="M40 28 L40 72 L50 72 L50 28 Z" fill="#ffffff"/><path d="M62 30 L62 70 L70 70 L70 30 Z" fill="#ffffff"/><path d="M15 50 L0 35 L0 65 Z" fill="#f97316"/><circle cx="75" cy="45" r="3" fill="#0f172a"/></svg>`
+            },
+            {
+                id: 'kepiting',
+                name: 'Kepiting',
+                habitat: 'air',
+                emoji: '🦀',
+                soundText: 'Klap-klap! Aku berjalan miring dengan supitku!',
+                fact: 'Kepiting berjalan menyamping di atas pasir pantai yang indah!',
+                color: 'from-red-300 to-rose-400',
+                borderColor: 'border-red-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="55" rx="28" ry="20" fill="#f43f5e"/><circle cx="40" cy="32" r="5" fill="#f43f5e"/><circle cx="60" cy="32" r="5" fill="#f43f5e"/><circle cx="40" cy="30" r="2.5" fill="#0f172a"/><circle cx="60" cy="30" r="2.5" fill="#0f172a"/><path d="M22 55 Q10 40 15 25 Q25 35 25 50 Z" fill="#e11d48"/><path d="M78 55 Q90 40 85 25 Q75 35 75 50 Z" fill="#e11d48"/></svg>`
+            },
+
+            // HEWAN UDARA
+            {
+                id: 'burung-hantu',
+                name: 'Burung Hantu',
+                habitat: 'udara',
+                emoji: '🦉',
+                soundText: 'Huuu-huuu! Mataku bulat besar dan bersinar di malam hari!',
+                fact: 'Burung hantu bisa memutar lehernya hampir berputar penuh!',
+                color: 'from-amber-200 to-amber-400',
+                borderColor: 'border-amber-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="52" rx="28" ry="32" fill="#d97706"/><circle cx="38" cy="42" r="11" fill="#ffffff"/><circle cx="62" cy="42" r="11" fill="#ffffff"/><circle cx="38" cy="42" r="5" fill="#0f172a"/><circle cx="62" cy="42" r="5" fill="#0f172a"/><polygon points="50,48 45,56 55,56" fill="#b45309"/></svg>`
+            },
+            {
+                id: 'kupu-kupu',
+                name: 'Kupu-Kupu',
+                habitat: 'udara',
+                emoji: '🦋',
+                soundText: 'Kepak kepak! Sayapku berwarna-warni cantik sekali!',
+                fact: 'Kupu-kupu suka hinggap di bunga-bunga manis untuk minum nektar!',
+                color: 'from-violet-300 to-fuchsia-300',
+                borderColor: 'border-purple-300',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="30" cy="38" rx="22" ry="18" fill="#e879f9"/><ellipse cx="70" cy="38" rx="22" ry="18" fill="#e879f9"/><ellipse cx="33" cy="62" rx="16" ry="14" fill="#38bdf8"/><ellipse cx="67" cy="62" rx="16" ry="14" fill="#38bdf8"/><rect x="47" y="25" width="6" height="50" rx="3" fill="#475569"/></svg>`
+            },
+            {
+                id: 'elang',
+                name: 'Burung Elang',
+                habitat: 'udara',
+                emoji: '🦅',
+                soundText: 'Swwiiiish! Aku terbang sangat tinggi menembus awan!',
+                fact: 'Elang memiliki penglihatan super tajam dari langit yang tinggi!',
+                color: 'from-stone-300 to-amber-600',
+                borderColor: 'border-amber-500',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="45" r="28" fill="#78350f"/><path d="M50 25 L80 45 L50 55 Z" fill="#b45309"/><path d="M50 25 L20 45 L50 55 Z" fill="#b45309"/><circle cx="42" cy="40" r="3" fill="#0f172a"/><circle cx="58" cy="40" r="3" fill="#0f172a"/><polygon points="50,44 43,54 57,54" fill="#f59e0b"/></svg>`
+            },
+            {
+                id: 'lebah',
+                name: 'Lebah',
+                habitat: 'udara',
+                emoji: '🐝',
+                soundText: 'Bzzzz bzzzz! Aku pembuat madu manis favoritmu!',
+                fact: 'Lebah bekerja sama mengumpulkan nektar bunga membuat madu lezat!',
+                color: 'from-yellow-200 to-amber-300',
+                borderColor: 'border-yellow-400',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="55" rx="28" ry="22" fill="#fbbf24"/><rect x="35" y="35" width="6" height="40" rx="2" fill="#1e293b"/><rect x="52" y="35" width="6" height="40" rx="2" fill="#1e293b"/><ellipse cx="38" cy="30" rx="10" ry="16" fill="#e0f2fe" opacity="0.8"/><ellipse cx="62" cy="30" rx="10" ry="16" fill="#e0f2fe" opacity="0.8"/><circle cx="70" cy="50" r="2" fill="#0f172a"/></svg>`
+            },
+            {
+                id: 'kolibri',
+                name: 'Burung Kolibri',
+                habitat: 'udara',
+                emoji: '🐦',
+                soundText: 'Fwoosh fwoosh! Kepakan sayapku super cepat!',
+                fact: 'Burung kolibri bisa mengepakkan sayap sangat cepat dan terbang mundur!',
+                color: 'from-teal-200 to-cyan-400',
+                borderColor: 'border-teal-300',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="45" cy="50" r="22" fill="#0d9488"/><polygon points="65,50 95,47 65 55" fill="#14b8a6"/><circle cx="38" cy="45" r="3" fill="#ffffff"/><path d="M25 50 Q10 20 40 35 Z" fill="#2dd4bf"/></svg>`
+            },
+            {
+                id: 'capung',
+                name: 'Capung',
+                habitat: 'udara',
+                emoji: '🦟',
+                soundText: 'Ziiing! Aku penari udara yang lincah di dekat telaga!',
+                fact: 'Capung suka terbang di sekitar air bersih dan taman bunga yang sejuk!',
+                color: 'from-emerald-200 to-cyan-300',
+                borderColor: 'border-cyan-300',
+                svgAsset: `<svg viewBox="0 0 100 100" class="w-full h-full"><ellipse cx="50" cy="65" rx="5" ry="28" fill="#0284c7"/><circle cx="50" cy="32" r="10" fill="#0284c7"/><ellipse cx="25" cy="35" rx="22" ry="6" fill="#a5f3fc" opacity="0.8"/><ellipse cx="75" cy="35" rx="22" ry="6" fill="#a5f3fc" opacity="0.8"/><ellipse cx="28" cy="45" rx="18" ry="5" fill="#a5f3fc" opacity="0.8"/><ellipse cx="72" cy="45" rx="18" ry="5" fill="#a5f3fc" opacity="0.8"/></svg>`
+            }
+        ];
+
+        // Play simple audio synthesizer sounds for toddler responsiveness
+        function playKidSynthSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                const now = ctx.currentTime;
+
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'roar') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.5);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'splash') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'chirp') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, now);
+                    osc.frequency.linearRampToValueAtTime(1800, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                }
+            } catch(e) {
+                console.log("Web Audio not supported or muted");
+            }
+        }
+
+        // Native Browser Speech Synthesis Helper (Indonesian Voice)
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any previous speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.85; // Slower pace for toddlers 3-4 y/o
+                utterance.pitch = 1.2; // Slightly higher friendly pitch
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // PCM16 ArrayBuffer to WAV Blob Converter for Gemini TTS
+        function pcmToWav(pcmData, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+            const view = new DataView(buffer);
+
+            /* RIFF identifier */
+            writeString(view, 0, 'RIFF');
+            /* RIFF chunk length */
+            view.setUint32(4, 36 + pcmData.length * 2, true);
+            /* RIFF type */
+            writeString(view, 8, 'WAVE');
+            /* format chunk identifier */
+            writeString(view, 12, 'fmt ');
+            /* format chunk length */
+            view.setUint32(16, 16, true);
+            /* sample format (raw PCM16) */
+            view.setUint16(20, 1, true);
+            /* channel count (mono) */
+            view.setUint16(22, 1, true);
+            /* sample rate */
+            view.setUint32(24, sampleRate, true);
+            /* byte rate (sampleRate * 2) */
+            view.setUint32(28, sampleRate * 2, true);
+            /* block align */
+            view.setUint16(32, 2, true);
+            /* bits per sample */
+            view.setUint16(34, 16, true);
+            /* data chunk identifier */
+            writeString(view, 36, 'data');
+            /* data chunk length */
+            view.setUint32(40, pcmData.length * 2, true);
+
+            // Write PCM samples
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++, offset += 2) {
+                view.setInt16(offset, pcmData[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('darat'); // 'darat', 'air', 'udara', 'kuis', 'studio'
+            const [selectedAnimal, setSelectedAnimal] = useState(ANIMALS_DATA[0]);
+            const [isAiLoading, setIsAiLoading] = useState(false);
+            const [aiGhibliImage, setAiGhibliImage] = useState(null);
+            const [isTtsSpeaking, setIsTtsSpeaking] = useState(false);
+            
+            // Quiz State
+            const [quizQuestion, setQuizQuestion] = useState(null);
+            const [quizOptions, setQuizOptions] = useState([]);
+            const [quizScore, setQuizScore] = useState(0);
+            const [quizFeedback, setQuizFeedback] = useState('');
+
+            // AI Custom Studio Prompt State
+            const [customPrompt, setCustomPrompt] = useState('Kucing imut di kebun bunga Studio Ghibli');
+            const [generatedStudioImg, setGeneratedStudioImg] = useState(null);
+
+            // Initialize icons
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [activeTab, selectedAnimal, quizQuestion]);
+
+            // Welcome Sound on Load
+            useEffect(() => {
+                speakText("Selamat datang di Dunia Hewan Ghibli! Mari kita belajar sambil bermain!");
+            }, []);
+
+            // Generate Ghibli Image using Gemini API gemini-3.1-flash-image
+            const fetchGhibliImage = async (animalName, customInstruction = '') => {
+                setIsAiLoading(true);
+                playKidSynthSound('pop');
+                
+                try {
+                    const prompt = customInstruction || 
+                        `Studio Ghibli anime style illustration of a super cute friendly child-friendly ${animalName}, warm watercolor aesthetic, Hayao Miyazaki film style, vibrant natural background, soft light, cozy atmosphere, highly detailed, masterpieces`;
+
+                    const payload = {
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }],
+                        generationConfig: {
+                            responseModalities: ['IMAGE'],
+                            imageConfig: { aspectRatio: "1:1" }
+                        }
+                    };
+
+                    const apiKey = ""; // Canvas runtime automatically supplies key
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+
+                    let response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // Exponential Backoff retry if needed
+                    if (!response.ok) {
+                        await new Promise(r => setTimeout(r, 1000));
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+
+                    const result = await response.json();
+                    const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+                    if (base64Data) {
+                        const imgUrl = `data:image/png;base64,${base64Data}`;
+                        if (customInstruction) {
+                            setGeneratedStudioImg(imgUrl);
+                        } else {
+                            setAiGhibliImage(imgUrl);
+                        }
+                        playKidSynthSound('success');
+                    } else {
+                        console.log("Fallback to SVG preset");
+                    }
+                } catch (err) {
+                    console.error("Ghibli image generation error:", err);
+                } finally {
+                    setIsAiLoading(false);
+                }
+            };
+
+            // Call Gemini TTS for cute high-quality voice
+            const speakWithGeminiTTS = async (text) => {
+                setIsTtsSpeaking(true);
+                // Fallback first for zero latency
+                speakText(text);
+
+                try {
+                    const payload = {
+                        contents: [{
+                            parts: [{ text: `Katakan dengan nada gembira, hangat, dan ramah untuk anak kecil usia 3 tahun: "${text}"` }]
+                        }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: { voiceName: "Aoede" } // Bright breezy voice
+                                }
+                            }
+                        }
+                    };
+
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+                    const res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        const inlineData = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                        if (inlineData && inlineData.data) {
+                            // Convert PCM to WAV
+                            const binary = atob(inlineData.data);
+                            const bytes = new Uint8Array(binary.length);
+                            for (let i = 0; i < binary.length; i++) {
+                                bytes[i] = binary.charCodeAt(i);
+                            }
+                            const sampleRate = parseInt(inlineData.mimeType.match(/rate=(\d+)/)?.[1] || "24000", 10);
+                            const pcm16 = new Int16Array(bytes.buffer);
+                            const wavBlob = pcmToWav(pcm16, sampleRate);
+                            const audioUrl = URL.createObjectURL(wavBlob);
+                            
+                            // Stop browser TTS and play Gemini TTS WAV
+                            window.speechSynthesis.cancel();
+                            const audio = new Audio(audioUrl);
+                            audio.play();
+                        }
+                    }
+                } catch (e) {
+                    console.log("Using browser voice fallback:", e);
+                } finally {
+                    setTimeout(() => setIsTtsSpeaking(false), 2000);
+                }
+            };
+
+            // Select an Animal Card
+            const handleSelectAnimal = (animal) => {
+                playKidSynthSound(animal.habitat === 'air' ? 'splash' : animal.habitat === 'udara' ? 'chirp' : 'pop');
+                setSelectedAnimal(animal);
+                setAiGhibliImage(null); // Reset until generated or kept default
+                speakText(animal.name + "! " + animal.soundText);
+            };
+
+            // Start or Generate New Quiz Question
+            const startNewQuiz = () => {
+                const randomAnimal = ANIMALS_DATA[Math.floor(Math.random() * ANIMALS_DATA.length)];
+                setQuizQuestion(randomAnimal);
+                setQuizFeedback('');
+
+                // Pick 3 options including correct answer
+                const wrongOptions = ANIMALS_DATA.filter(a => a.id !== randomAnimal.id);
+                const shuffledWrong = wrongOptions.sort(() => 0.5 - Math.random()).slice(0, 2);
+                const options = [randomAnimal, ...shuffledWrong].sort(() => 0.5 - Math.random());
+                setQuizOptions(options);
+
+                speakText(`Mana hewan yang hidup di ${randomAnimal.habitat}? Coba tebak ${randomAnimal.name}!`);
+            };
+
+            // Handle Quiz Option Click
+            const handleQuizAnswer = (chosen) => {
+                if (chosen.id === quizQuestion.id) {
+                    playKidSynthSound('success');
+                    setQuizScore(prev => prev + 1);
+                    setQuizFeedback('🎉 Horeee! Jawabanmu Benar Sekali!');
+                    speakText('Horeee! Jawabanmu Benar Sekali! Pintar!');
+                    
+                    if (window.confetti) {
+                        window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                    }
+
+                    setTimeout(() => {
+                        startNewQuiz();
+                    }, 2500);
+                } else {
+                    playKidSynthSound('pop');
+                    setQuizFeedback('😊 Ayo coba lagi ya sayang!');
+                    speakText('Ayo coba lagi!');
+                }
+            };
+
+            useEffect(() => {
+                if (activeTab === 'kuis') {
+                    startNewQuiz();
+                }
+            }, [activeTab]);
+
+            // Filter Animals by Current Habitat Tab
+            const filteredAnimals = ANIMALS_DATA.filter(a => a.habitat === activeTab);
+
+            return (
+                <div className={`min-h-screen flex flex-col justify-between transition-colors duration-500 ${
+                    activeTab === 'darat' ? 'bg-ghibli-land' : 
+                    activeTab === 'air' ? 'bg-ghibli-water' : 
+                    activeTab === 'udara' ? 'bg-ghibli-air' : 'bg-emerald-50'
+                }`}>
+                    
+                    <header className="p-4 md:p-6 bg-white/80 backdrop-blur-md shadow-lg rounded-b-3xl flex flex-wrap items-center justify-between gap-4 border-b-4 border-emerald-200">
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => speakText("Dunia Hewan Studio Ghibli")}>
+                            <span className="text-4xl animate-bounce">🍃</span>
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-800 tracking-wide">
+                                    Dunia Hewan Ghibli
+                                </h1>
+                                <p className="text-xs md:text-sm font-semibold text-emerald-600">
+                                    Belajar Mengenal Hewan Usia 3-4 Tahun
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Top Action Controls -->
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => speakText("Halo adik-adik manis! Pilih habitat di bawah untuk menjelajah!")}
+                                className="bg-amber-400 hover:bg-amber-500 text-amber-900 font-bold px-4 py-2.5 rounded-2xl shadow-md flex items-center gap-2 hover-wiggle text-sm md:text-base border-b-4 border-amber-600">
+                                <span className="text-xl">🔊</span>
+                                <span>Bantuan Suara</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <nav className="p-4 max-w-4xl mx-auto w-full">
+                        <div className="bg-white/90 p-2.5 rounded-3xl shadow-md border-2 border-emerald-100 flex flex-wrap justify-center gap-2 md:gap-4">
+                            <button 
+                                onClick={() => { setActiveTab('darat'); setSelectedAnimal(ANIMALS_DATA[0]); speakText("Lingkungan Hewan di Darat"); }}
+                                className={`flex-1 min-w-[100px] py-3 px-4 rounded-2xl font-bold text-base md:text-lg flex items-center justify-center gap-2 transition-all shadow-sm ${
+                                    activeTab === 'darat' 
+                                    ? 'bg-emerald-500 text-white shadow-lg scale-105 border-b-4 border-emerald-700' 
+                                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                }`}>
+                                <span className="text-2xl">🏞️</span>
+                                <span>Darat</span>
+                            </button>
+
+                            <button 
+                                onClick={() => { setActiveTab('air'); setSelectedAnimal(ANIMALS_DATA[6]); speakText("Lingkungan Hewan di Air"); }}
+                                className={`flex-1 min-w-[100px] py-3 px-4 rounded-2xl font-bold text-base md:text-lg flex items-center justify-center gap-2 transition-all shadow-sm ${
+                                    activeTab === 'air' 
+                                    ? 'bg-sky-500 text-white shadow-lg scale-105 border-b-4 border-sky-700' 
+                                    : 'bg-sky-50 text-sky-800 hover:bg-sky-100'
+                                }`}>
+                                <span className="text-2xl">🌊</span>
+                                <span>Air</span>
+                            </button>
+
+                            <button 
+                                onClick={() => { setActiveTab('udara'); setSelectedAnimal(ANIMALS_DATA[12]); speakText("Lingkungan Hewan di Udara"); }}
+                                className={`flex-1 min-w-[100px] py-3 px-4 rounded-2xl font-bold text-base md:text-lg flex items-center justify-center gap-2 transition-all shadow-sm ${
+                                    activeTab === 'udara' 
+                                    ? 'bg-amber-400 text-amber-950 shadow-lg scale-105 border-b-4 border-amber-600' 
+                                    : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+                                }`}>
+                                <span className="text-2xl">☁️</span>
+                                <span>Udara</span>
+                            </button>
+
+                            <button 
+                                onClick={() => { setActiveTab('kuis'); speakText("Kuis Tebak Hewan Seru"); }}
+                                className={`py-3 px-5 rounded-2xl font-bold text-base md:text-lg flex items-center justify-center gap-2 transition-all shadow-sm ${
+                                    activeTab === 'kuis' 
+                                    ? 'bg-purple-600 text-white shadow-lg scale-105 border-b-4 border-purple-800' 
+                                    : 'bg-purple-50 text-purple-800 hover:bg-purple-100'
+                                }`}>
+                                <span className="text-2xl">🎮</span>
+                                <span>Kuis</span>
+                            </button>
+
+                            <button 
+                                onClick={() => { setActiveTab('studio'); speakText("Studio Gambar AI Ghibli"); }}
+                                className={`py-3 px-5 rounded-2xl font-bold text-base md:text-lg flex items-center justify-center gap-2 transition-all shadow-sm ${
+                                    activeTab === 'studio' 
+                                    ? 'bg-rose-500 text-white shadow-lg scale-105 border-b-4 border-rose-700' 
+                                    : 'bg-rose-50 text-rose-800 hover:bg-rose-100'
+                                }`}>
+                                <span className="text-2xl">🎨</span>
+                                <span>Ghibli AI</span>
+                            </button>
+                        </div>
+                    </nav>
+
+                    <main className="flex-1 max-w-6xl mx-auto w-full p-4">
+                        {(activeTab === 'darat' || activeTab === 'air' || activeTab === 'udara') && (
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                                
+                                <!-- Animal List Selection Panel (Left Column) -->
+                                <div className="md:col-span-5 bg-white/90 backdrop-blur-sm p-4 rounded-3xl shadow-xl border-4 border-white/80">
+                                    <h2 className="text-xl font-bold text-slate-700 mb-3 flex items-center gap-2">
+                                        <span>Pilih Hewan {activeTab === 'darat' ? '🏞️' : activeTab === 'air' ? '🌊' : '☁️'}</span>
+                                    </h2>
+                                    
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {filteredAnimals.map((animal) => (
+                                            <button
+                                                key={animal.id}
+                                                onClick={() => handleSelectAnimal(animal)}
+                                                className={`p-3 rounded-2xl flex flex-col items-center gap-1 transition-all duration-300 border-b-4 hover-wiggle ${
+                                                    selectedAnimal.id === animal.id
+                                                    ? `bg-gradient-to-b ${animal.color} text-slate-900 font-extrabold shadow-md border-amber-500 scale-105`
+                                                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                                                }`}>
+                                                <span className="text-4xl md:text-5xl animate-float">{animal.emoji}</span>
+                                                <span className="text-base font-bold mt-1">{animal.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <!-- Active Animal Detail Card & Interactive Ghibli Viewer (Right Column) -->
+                                <div className="md:col-span-7 bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border-4 border-white flex flex-col items-center text-center relative overflow-hidden">
+                                    
+                                    <!-- Habitat Badge -->
+                                    <div className="absolute top-4 left-4 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                                        <span>Lingkungan:</span>
+                                        <span className="capitalize font-extrabold">{selectedAnimal.habitat}</span>
+                                    </div>
+
+                                    <!-- Main Display Image / Dynamic AI Ghibli Artwork -->
+                                    <div className="w-full max-w-xs sm:max-w-sm aspect-square bg-gradient-to-b from-amber-50 to-orange-50 rounded-3xl p-4 my-2 flex items-center justify-center shadow-inner border-4 border-amber-200 relative group">
+                                        {isAiLoading ? (
+                                            <div className="flex flex-col items-center gap-3">
+                                                <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                                                <p className="text-emerald-700 font-bold animate-pulse text-sm">
+                                                    🎨 Sedang Menggambar Gaya Ghibli...
+                                                </p>
+                                            </div>
+                                        ) : aiGhibliImage ? (
+                                            <img 
+                                                src={aiGhibliImage} 
+                                                alt={selectedAnimal.name} 
+                                                className="w-full h-full object-cover rounded-2xl shadow-md border-2 border-white"
+                                            />
+                                        ) : (
+                                            <div 
+                                                className="w-full h-full flex flex-col items-center justify-center p-4 cursor-pointer"
+                                                onClick={() => speakText(selectedAnimal.name)}
+                                                dangerouslySetInnerHTML={{ __html: selectedAnimal.svgAsset }}
+                                            />
+                                        )}
+
+                                        <!-- Generate Ghibli Button Badge -->
+                                        <button 
+                                            onClick={() => fetchGhibliImage(selectedAnimal.name)}
+                                            className="absolute bottom-3 right-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-xs px-3 py-2 rounded-xl shadow-lg hover:scale-105 transition-all flex items-center gap-1 border border-white">
+                                            <span>✨ Gambar Ghibli AI</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Animal Title & Sound Buttons -->
+                                    <h3 className="text-3xl font-extrabold text-slate-800 mt-2 flex items-center gap-2">
+                                        <span>{selectedAnimal.name}</span>
+                                        <span className="text-3xl">{selectedAnimal.emoji}</span>
+                                    </h3>
+
+                                    <!-- Audio Interaction Buttons -->
+                                    <div className="flex flex-wrap justify-center gap-3 my-3">
+                                        <button 
+                                            onClick={() => {
+                                                playKidSynthSound(selectedAnimal.habitat === 'air' ? 'splash' : 'roar');
+                                                speakWithGeminiTTS(selectedAnimal.soundText);
+                                            }}
+                                            className="bg-amber-400 hover:bg-amber-500 text-amber-950 px-5 py-3 rounded-2xl font-bold text-base shadow-md flex items-center gap-2 hover-wiggle border-b-4 border-amber-600 active:translate-y-1">
+                                            <span className="text-2xl">🔊</span>
+                                            <span>Dengarkan Suara</span>
+                                        </button>
+
+                                        <button 
+                                            onClick={() => speakWithGeminiTTS(selectedAnimal.fact)}
+                                            className="bg-sky-400 hover:bg-sky-500 text-sky-950 px-5 py-3 rounded-2xl font-bold text-base shadow-md flex items-center gap-2 hover-wiggle border-b-4 border-sky-600 active:translate-y-1">
+                                            <span className="text-2xl">💡</span>
+                                            <span>Fakta Unik</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Fun Fact Text Banner -->
+                                    <div className="bg-amber-50/90 border-2 border-amber-200 p-4 rounded-2xl w-full text-center mt-1">
+                                        <p className="text-slate-700 font-bold text-base md:text-lg leading-relaxed">
+                                            "{selectedAnimal.fact}"
+                                        </p>
+                                    </div>
+
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'kuis' && quizQuestion && (
+                            <div className="max-w-2xl mx-auto bg-white/95 backdrop-blur-md p-6 md:p-8 rounded-3xl shadow-2xl border-4 border-purple-200 text-center">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="bg-purple-100 text-purple-800 font-extrabold px-4 py-2 rounded-2xl text-sm border border-purple-300">
+                                        🏆 Skor Anak Pintar: {quizScore}
+                                    </span>
+                                    <button 
+                                        onClick={startNewQuiz}
+                                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs">
+                                        🔄 Soal Baru
+                                    </button>
+                                </div>
+
+                                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 my-4">
+                                    Mana hewan yang hidup di <span className="text-purple-600 underline capitalize">{quizQuestion.habitat}</span>? 🤔
+                                </h2>
+
+                                <p className="text-lg text-slate-600 font-bold mb-6">
+                                    Cari hewan bernama: <span className="text-amber-600 font-black text-2xl">{quizQuestion.name}</span>!
+                                </p>
+
+                                <!-- Quiz Answer Options -->
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
+                                    {quizOptions.map((option) => (
+                                        <button
+                                            key={option.id}
+                                            onClick={() => handleQuizAnswer(option)}
+                                            className="bg-gradient-to-b from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-4 border-purple-200 p-5 rounded-3xl shadow-lg flex flex-col items-center gap-2 hover-wiggle transition-all active:scale-95">
+                                            <span className="text-6xl animate-bounce">{option.emoji}</span>
+                                            <span className="text-xl font-black text-slate-800">{option.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {quizFeedback && (
+                                    <div className="p-4 rounded-2xl bg-amber-100 border-2 border-amber-300 text-amber-900 font-extrabold text-xl animate-pulse">
+                                        {quizFeedback}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'studio' && (
+                            <div className="max-w-3xl mx-auto bg-white/95 backdrop-blur-md p-6 md:p-8 rounded-3xl shadow-2xl border-4 border-rose-200">
+                                <div className="text-center mb-6">
+                                    <h2 className="text-3xl font-extrabold text-rose-800 flex items-center justify-center gap-2">
+                                        <span>Studio Lukis Ghibli AI</span>
+                                        <span>🎨</span>
+                                    </h2>
+                                    <p className="text-slate-600 font-bold mt-1">
+                                        Buat gambar hewan apa saja dalam gaya animasi Studio Ghibli yang indah!
+                                    </p>
+                                </div>
+
+                                <!-- Prompt Input Form -->
+                                <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                                    <input 
+                                        type="text" 
+                                        value={customPrompt}
+                                        onChange={(e) => setCustomPrompt(e.target.value)}
+                                        placeholder="Contoh: Kelinci putih lucu terbang membawa balon..."
+                                        className="flex-1 p-4 rounded-2xl border-2 border-rose-200 font-bold text-slate-700 shadow-inner focus:outline-none focus:border-rose-400 text-base"
+                                    />
+                                    <button 
+                                        onClick={() => fetchGhibliImage('', customPrompt)}
+                                        disabled={isAiLoading || !customPrompt.trim()}
+                                        className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-extrabold px-6 py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 text-base border-b-4 border-rose-800 disabled:opacity-50">
+                                        {isAiLoading ? (
+                                            <span>🎨 Menggambar...</span>
+                                        ) : (
+                                            <>
+                                                <span>✨</span>
+                                                <span>Buat Gambar</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+
+                                <!-- Preset Ideas Chips -->
+                                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                                    <span className="text-xs font-bold text-slate-500 py-1">Ide cepat:</span>
+                                    {[
+                                        'Gajah kecil mandi di sungai jernih Ghibli',
+                                        'Burung hantu memakai topi rumput di hutan Ghibli',
+                                        'Lumba-lumba menari dengan bintang laut Ghibli',
+                                        'Singa bersahabat tidur di padang bunga Ghibli'
+                                    ].map((preset, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => {
+                                                setCustomPrompt(preset);
+                                                fetchGhibliImage('', preset);
+                                            }}
+                                            className="text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl border border-rose-200">
+                                            {preset}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <!-- Result Display Box -->
+                                <div className="w-full aspect-square max-w-md mx-auto bg-rose-50/50 rounded-3xl border-4 border-dashed border-rose-200 flex items-center justify-center overflow-hidden relative shadow-inner p-4">
+                                    {isAiLoading ? (
+                                        <div className="flex flex-col items-center gap-3 text-center">
+                                            <div className="w-16 h-16 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <p className="text-rose-700 font-bold text-sm animate-pulse">
+                                                Ghibli AI sedang melukis karya indahmu...
+                                            </p>
+                                        </div>
+                                    ) : generatedStudioImg ? (
+                                        <img 
+                                            src={generatedStudioImg} 
+                                            alt="Ghibli AI Result" 
+                                            className="w-full h-full object-cover rounded-2xl shadow-lg border-2 border-white"
+                                        />
+                                    ) : (
+                                        <div className="text-center text-slate-400 font-bold p-6">
+                                            <span className="text-6xl block mb-2">🖼️</span>
+                                            <span>Hasil gambar Ghibli buatanmu akan muncul di sini!</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    <footer className="p-4 text-center bg-white/70 backdrop-blur-sm border-t-2 border-emerald-100 text-emerald-900 font-bold text-xs md:text-sm mt-6">
+                        <p>🍃 Aplikasi Belajar Hewan Anak Usia 3-4 Tahun • Bergaya Animasi Ghibli ✨</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
